@@ -155,3 +155,12 @@ misconfiguration. A `302` means Access is asking for identification, which is wh
 ## Licence
 
 MIT — original author: Rafael Roa (rafarq).
+
+## Author
+
+Rafael Roa — Technical Architect and Building Engineer, writing about BIM, AI and automation.
+
+- Blog: [rafarq.com](https://rafarq.com)
+- LinkedIn: [in/rafaroa](https://www.linkedin.com/in/rafaroa)
+- Instagram: [@r4f4r04](https://www.instagram.com/r4f4r04)
+- Threads: [@r4f4r04](https://www.threads.net/@r4f4r04)
