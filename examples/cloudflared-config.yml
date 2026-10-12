@@ -1,0 +1,24 @@
+# Example: how the form hostname fits in a Cloudflare Tunnel configuration.
+#
+# This is an EXCERPT. Put the form's ingress rule BEFORE the catch-all line
+# (`- service: http_status:404`), which must stay last.
+#
+# Then:
+#   cloudflared tunnel route dns <your-tunnel> token.example.com
+#   systemctl --user restart cloudflared.service
+#
+# And create a Cloudflare Access application for token.example.com with an `allow`
+# policy listing the emails that may open the form.
+
+tunnel: <your-tunnel-uuid>
+credentials-file: /home/<user>/.cloudflared/<your-tunnel-uuid>.json
+
+ingress:
+  # The local address the form listens on (secret_form.py --puerto 8899).
+  - hostname: token.example.com
+    service: http://127.0.0.1:8899
+
+  # ... other hostnames of this tunnel ...
+
+  # Catch-all: must be the last rule.
+  - service: http_status:404
