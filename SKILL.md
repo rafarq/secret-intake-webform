@@ -56,9 +56,21 @@ python3 scripts/secret_form.py \
 | `--host` | Public hostname that routes to that port (default `token.example.com`; **set it per machine**) |
 | `--workdir` | Where the form page is generated (default `/tmp/secret-form`) |
 
-It prints the local URL and the public URL, then serves in the foreground. Launch it as a background
-process and read the 16-hex key from the work directory (`ls /tmp/secret-form/`). The script serves
-**only** that one file by exact path and answers `404` to everything else, including directory listings.
+It prints the local URL and the public URL, then serves in the foreground. Read the 16-hex key from
+the work directory (`ls /tmp/secret-form/`). The script serves **only** that one file by exact path
+and answers `404` to everything else, including directory listings.
+
+**If a person has to open the link, the form must outlive your own session.** Starting it as a child
+process of the agent session (a background task, a `timeout`-limited command) kills it when that
+session ends, and the human then finds a dead link — with the tunnel log showing
+`connect: connection refused` on the port, which looks like a network fault but is not. Run it as a
+user unit instead, and stop it when the value has arrived:
+
+```bash
+systemd-run --user --unit=formulario --collect \
+  python3 scripts/secret_form.py --dest ~/.hermes/.env.new --campo "API key" --host token.example.com
+systemctl --user stop formulario.service
+```
 
 ### 2. Publish it through the tunnel
 
@@ -129,7 +141,10 @@ Then report what was deployed and confirm that no copy of the value remains.
 - **`pkill -f secret_form.py` can kill the shell that launched it** when the pattern matches that
   shell's own command line. Match the full command line instead, or kill by the PID holding the port.
 - **Free the port before relaunching**: `ss -tlnp | grep 8899` and kill the old PID.
-- **Launch it with a timeout** so it cannot stay up forever if nobody takes it down.
+- **Launch it with a timeout** so it cannot stay up forever if nobody takes it down — but only when
+  the human is on the other side *right now*. If the form has to wait, run it as a systemd user unit
+  (above): a timeout, or any child process of the agent session, death-marches the form the moment
+  that session ends.
 - **When another user runs the form** (for example via `sudo -u`), the `--workdir` must belong to that
   user: if `root` creates it, the server dies with `PermissionError` when writing the page.
 - **Never type a sudo password into a PTY**: the terminal echoes it into the session log. Authenticate
